@@ -9,25 +9,29 @@ A Next.js application for managing and recording clinical consultations with AI 
 
 ## Development Setup
 
-1. Start the development environment with Docker Compose:
+1. Install dependencies
+```bash
+npm install
+```
+
+2. Start the development environment with Docker Compose:
 ```bash
 docker compose up -d
 ```
 
-This will:
-- Start a PostgreSQL database
-- Start the Next.js development server
-- Set up all required environment variables
+3. Run the database migrations:
+```bash
+a) docker compose exec dev bash
+b) npx prisma migrate dev
+```
 
-The application will be available at http://localhost:3000
+4. The application will be available at http://localhost:3000
 
 ## Project Features
 
-- Real-time consultation management
-- Automated consultation recording
-- Note-taking during consultations
-- Automatic summary generation
-- Complete consultation history
+- Simulated consultant recordings and summary
+- Add notes during consultation
+- View consultation history
 
 ## Database Schema
 
@@ -48,10 +52,3 @@ This project includes a devcontainer configuration for VS Code, providing:
 To use:
 1. Install the "Remote - Containers" extension in VS Code
 2. Open the project in a container (Command Palette -> "Reopen in Container")
-
-## Database Management
-
-Reset database (caution - destroys all data):
-```bash
-npx prisma migrate reset
-```

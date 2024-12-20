@@ -1,0 +1,51 @@
+{
+  "name": "Lyrebird Development",
+  "dockerFile": "Dockerfile",
+  "forwardPorts": [3000],
+  
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "files.insertFinalNewline": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "github.copilot",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "aaron-bond.better-comments",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "mikestead.dotenv",
+        "YoavBls.pretty-ts-errors"
+      ]
+    }
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/node_modules,target=/app/node_modules,type=volume"
+  ],
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "postCreateCommand": "npm install && npx prisma generate",
+  "remoteUser": "node"
+} 

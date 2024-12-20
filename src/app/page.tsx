@@ -1,101 +1,192 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { Controls } from "@/components/consultation/Controls";
+import { NoteInput } from "@/components/consultation/NoteInput";
+import { NotesList } from "@/components/consultation/NotesList";
+import { Summary } from "@/components/consultation/Summary";
+import {
+  startConsultation,
+  endConsultation,
+  addNote,
+  listConsultations,
+} from "@/lib/actions/consultation";
+import { Consultation } from "@/lib/types/consultation";
+
+export default function ConsultationPage() {
+  const [consultationId, setConsultationId] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const currentConsultation = consultations.find(
+    (c) => c.id === consultationId
+  );
+
+  useEffect(() => {
+    loadConsultations();
+  }, []);
+
+  const loadConsultations = async () => {
+    try {
+      const consultationList = await listConsultations();
+      setConsultations(consultationList);
+    } catch (err) {
+      console.error("Error loading consultations:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartConsultation = async () => {
+    try {
+      const consultation = await startConsultation();
+      setConsultationId(consultation.id);
+      setSummary(null);
+      await loadConsultations();
+    } catch (err) {
+      alert(
+        err instanceof Error ? err.message : "Failed to start consultation"
+      );
+      console.error("Error starting consultation:", err);
+    }
+  };
+
+  const handleEndConsultation = async () => {
+    if (!consultationId) return;
+
+    try {
+      const updatedConsultation = await endConsultation(consultationId);
+      setSummary(updatedConsultation.summary?.content || null);
+      setConsultationId(null);
+      await loadConsultations();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to end consultation");
+      console.error("Error ending consultation:", err);
+    }
+  };
+
+  const handleAddNote = async (note: string) => {
+    if (!consultationId) return;
+
+    try {
+      await addNote(consultationId, note);
+      await loadConsultations();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to add note");
+      console.error("Error adding note:", err);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <main>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Clinical Consultation
+        </h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Manage and record patient consultations
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div className="bg-white shadow-sm rounded-lg p-6">
+            <Controls
+              consultationId={consultationId}
+              isActive={!!consultationId}
+              onStart={handleStartConsultation}
+              onEnd={handleEndConsultation}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+
+          {consultationId && (
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Consultation Notes
+              </h2>
+              <NoteInput onAddNote={handleAddNote} disabled={!consultationId} />
+              <div className="mt-4">
+                <NotesList notes={currentConsultation?.notes || []} />
+              </div>
+            </div>
+          )}
+
+          {summary && (
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <Summary summary={summary} />
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="bg-white shadow-sm rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Consultation History
+          </h2>
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <p className="text-gray-500">Loading consultations...</p>
+            </div>
+          ) : consultations.length === 0 ? (
+            <div className="flex items-center justify-center h-32">
+              <p className="text-gray-500">No consultations yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {consultations.map((consultation) => (
+                <div
+                  key={consultation.id}
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold">
+                        Started:{" "}
+                        {new Date(consultation.startTime).toLocaleString()}
+                      </p>
+                      {consultation.endTime && (
+                        <p className="text-sm text-gray-600">
+                          Ended:{" "}
+                          {new Date(consultation.endTime).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        consultation.status === "IN_PROGRESS"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {consultation.status}
+                    </span>
+                  </div>
+                  {consultation.notes.length > 0 && (
+                    <div className="mb-2">
+                      <p className="font-medium">Notes:</p>
+                      <ul className="list-disc list-inside">
+                        {consultation.notes.map((note, index) => (
+                          <li key={index} className="text-sm text-gray-600">
+                            {note.content}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {consultation.summary && (
+                    <div>
+                      <p className="font-medium">Summary:</p>
+                      <p className="text-sm text-gray-600">
+                        {consultation.summary.content}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }

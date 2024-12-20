@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgres@postgres:5432/lyrebird"
+}
+
+model Consultation {
+  id        String    @id @default(uuid())
+  startTime DateTime  @map("start_time")
+  endTime   DateTime? @map("end_time")
+  status    String
+  notes     Note[]
+  summary   Summary?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("consultations")
+}
+
+model Note {
+  id             String       @id @default(uuid())
+  content        String
+  timestamp      DateTime
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  consultationId String       @map("consultation_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("notes")
+}
+
+model Summary {
+  id             String       @id @default(uuid())
+  content        String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  consultationId String       @unique @map("consultation_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("summaries")
+}

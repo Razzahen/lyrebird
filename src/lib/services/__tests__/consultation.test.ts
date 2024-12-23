@@ -18,12 +18,14 @@ const mockDb: jest.Mocked<IConsultationRepository> = {
 
 describe('ConsultationService', () => {
   let service: ConsultationService;
-  
+
+  // Clear all mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
     service = new ConsultationService(mockDb as any);
   });
 
+  // Test the startConsultation method
   describe('startConsultation', () => {
     it('should create a new consultation with correct initial state', async () => {
       const expectedConsultation: Consultation = {
@@ -34,12 +36,20 @@ describe('ConsultationService', () => {
         notes: [],
         summary: null,
       };
+
+      // Mock the createConsultation method to return the expected consultation
       mockDb.createConsultation.mockResolvedValueOnce(expectedConsultation);
-      
+
+      // Call the startConsultation method
       const result = await service.startConsultation();
 
+      // Assert that the createConsultation method was called once
       expect(mockDb.createConsultation).toHaveBeenCalledTimes(1);
+
+      // Assert that the return the result without any changes
       expect(result).toEqual(expectedConsultation);
+
+      // Assert that the return has the correct structure
       expect(result.status).toBe(ConsultationStatus.IN_PROGRESS);
       expect(result.endTime).toBeNull();
       expect(result.notes).toHaveLength(0);
@@ -56,8 +66,11 @@ describe('ConsultationService', () => {
         notes: [],
         summary: null,
       };
+
+      // Mock the findById method to return the completed consultation
       mockDb.findById.mockResolvedValueOnce(completedConsultation);
 
+      // Call the addNote method and expect it to throw an error
       await expect(service.addNote('test-id', 'test note'))
         .rejects
         .toThrow(InvalidConsultationStateError);

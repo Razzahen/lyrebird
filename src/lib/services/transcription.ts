@@ -55,11 +55,13 @@ export class TranscriptionService {
     };
   }
 
+  // Set up default config
   private readonly DEFAULT_CONFIG: TranscriptionConfig = {
     segmentDuration: 30,
     minVolumeThreshold: -60  // Back to original value to make test pass
   };
 
+  // Start a new segment
   async startSegment(consultationId: string): Promise<TranscriptionSegment> {
     if (this.currentSegment) {
       throw new Error('Another segment is currently being recorded');
@@ -98,6 +100,7 @@ export class TranscriptionService {
     }
 
     try {
+      // Stop recording and get audio blob
       const audioBlob = await this.provider.stopRecording();
       const qualityMetrics = await this.provider.getAudioQualityMetrics(audioBlob);
 
@@ -167,17 +170,17 @@ export function createTranscriptionService(
   config?: Partial<TranscriptionConfig>
 ): TranscriptionService {
   const defaultProvider: ITranscriptionProvider = {
-    // Mock implementation for demo purposes
-    async startRecording() { /* Implementation needed */ },
+    // Mock implementation
+    async startRecording() { /* TODO */ },
     async stopRecording() { return new Blob(); },
     async transcribeAudio() { return "Mock transcription"; },
     async getAudioQualityMetrics() { return { volumeLevel: 0 }; }
   };
 
   const defaultStorage: ITranscriptionStorage = {
-    // Mock implementation for demo purposes
+    // Mock implementation
     async saveAudio() { return "mock-url"; },
-    async saveSegment() { /* Implementation needed */ },
+    async saveSegment() { /* TODO */ },
     async getSegment() { return null; },
     async listSegments() { return []; }
   };

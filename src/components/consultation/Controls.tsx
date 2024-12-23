@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { RecordingControls } from './RecordingControls';
 
 interface ControlsProps {
+  consultationId: string | null;
+  isActive: boolean;
   onStart: () => Promise<void>;
   onEnd: () => Promise<void>;
-  isActive: boolean;
-  consultationId: string | null;
+  loading?: boolean;
 }
 
 export function Controls({ onStart, onEnd, isActive, consultationId }: ControlsProps) {

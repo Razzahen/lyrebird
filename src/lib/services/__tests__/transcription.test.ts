@@ -69,7 +69,7 @@ describe('TranscriptionService', () => {
       // Mock low volume audio
       mockProvider.stopRecording.mockResolvedValueOnce(new Blob());
       mockProvider.getAudioQualityMetrics.mockResolvedValueOnce({
-        volumeLevel: -90 // Very low volume
+        volumeLevel: -90 // Low volume
       });
 
       // Mock storage operations
@@ -125,9 +125,10 @@ describe('TranscriptionService', () => {
       expect(result.qualityMetrics?.volumeLevel).toBe(-30);
 
       const savedSegments = mockStorage.saveSegment.mock.calls.map(call => call[0]);
-      expect(savedSegments).toHaveLength(2); // Should be saved twice: PROCESSING and COMPLETED
+      // Should be saved twice: PROCESSING and COMPLETED
+      expect(savedSegments).toHaveLength(2);
       expect(savedSegments[0].status).toBe(TranscriptionStatus.PROCESSING);
       expect(savedSegments[1].status).toBe(TranscriptionStatus.COMPLETED);
     });
   });
-}); 
+});
